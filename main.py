@@ -8,7 +8,6 @@ counts calories burned is the same one you were reading while eating.
 
 import os
 import sys
-import tempfile
 
 LINE = (
     "My fitness tracker says I burned 400 calories today, "
@@ -35,14 +34,13 @@ def write_entry(out_dir: str) -> None:
     """Atomically write entry.txt, then verify it by reading it back."""
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, "entry.txt")
-    fd, tmp_path = tempfile.mkstemp(
-        dir=out_dir, prefix=".entry-", suffix=".tmp"
-    )
+    tmp_path = out_path + ".tmp"
     try:
-        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+        with open(tmp_path, "w", encoding="utf-8", newline="\n") as f:
             f.write(LINE + "\n")
             f.flush()
             os.fsync(f.fileno())
+        os.chmod(tmp_path, 0o644)
         os.replace(tmp_path, out_path)
     except BaseException:
         try:
